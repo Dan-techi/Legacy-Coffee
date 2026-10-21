@@ -16,3 +16,22 @@ body {
   font-family: 'Segoe UI', sans-serif;
   color: #5C3A1E;
 }
+
+@keyframes mobile-nav-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.mobile-nav-rise {
+  animation: mobile-nav-slide-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-rise {
+    animation: none;
+  }
+}
