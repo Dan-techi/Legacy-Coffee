@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { LuMenu, LuShoppingCart, LuX } from 'react-icons/lu'
 import { useCart } from '../context/useCart.js'
@@ -15,14 +15,43 @@ const links = [
 export default function Navbar() {
   const { cartCount } = useCart()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showFloatingCart, setShowFloatingCart] = useState(false)
+  const headerRef = useRef(null)
+
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header) return undefined
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setShowFloatingCart(!entry.isIntersecting)
+    })
+    observer.observe(header)
+
+    return () => observer.disconnect()
+  }, [])
 
   return (
-    <header className="relative z-50 bg-white shadow-sm">
+    <>
+    <header ref={headerRef} className="relative z-50 bg-white shadow-sm">
       <nav aria-label="Main navigation" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
         <NavLink to="/" className="text-xl font-bold text-primary" onClick={() => setIsMenuOpen(false)}>
           Legacy Coffee
         </NavLink>
-        <div className="flex items-center gap-4">
+        <div className="ml-auto hidden items-center gap-x-4 gap-y-2 md:flex">
+          {links.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `whitespace-nowrap text-sm font-medium transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-brown'}`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-4 md:ml-0">
           <NavLink
             to="/cart"
             aria-label={`Shopping cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
@@ -47,20 +76,6 @@ export default function Navbar() {
               ? <LuX aria-hidden="true" className="h-6 w-6" />
               : <LuMenu aria-hidden="true" className="h-6 w-6" />}
           </button>
-        </div>
-        <div className="hidden items-center gap-x-5 gap-y-2 md:flex">
-          {links.map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `text-sm font-medium transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-brown'}`
-              }
-            >
-              {label}
-            </NavLink>
-          ))}
         </div>
       </nav>
       {isMenuOpen && (
@@ -92,5 +107,20 @@ export default function Navbar() {
         </>
       )}
     </header>
+    {showFloatingCart && (
+      <NavLink
+        to="/cart"
+        aria-label={`Shopping cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+        className={({ isActive }) =>
+          `fixed bottom-6 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-[50%] bg-[#F58537] text-white shadow-lg transition-colors hover:bg-[#e8742b] sm:bottom-8 sm:right-8 ${isActive ? 'ring-2 ring-black ring-offset-2' : ''}`
+        }
+      >
+        <LuShoppingCart aria-hidden="true" className="h-6 w-6" />
+        <span aria-hidden="true" className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold leading-none text-white">
+          {cartCount > 99 ? '99+' : cartCount}
+        </span>
+      </NavLink>
+    )}
+    </>
   )
 }
