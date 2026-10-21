@@ -3,15 +3,27 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { LuArrowLeft, LuCheck, LuClipboardList, LuMapPin, LuShieldCheck } from 'react-icons/lu'
 import { formatPrice } from './data/products.js'
 import { useCart } from './context/useCart.js'
+import { useAuth } from './context/useAuth.js'
+import { apiRequest } from './context/api.js'
 import ProductImage from './components/ProductImage.jsx'
 
 const inputClass = 'mt-1.5 w-full border border-peach-mid bg-white px-3.5 py-3 text-sm text-black outline-none transition-colors placeholder:text-black/40 focus:border-primary focus:ring-2 focus:ring-primary/20'
 const labelClass = 'block text-sm font-medium text-black'
 
 export default function CheckoutPage() {
-  const { items, cartTotal, placeOrder } = useCart()
+  const { items, cartTotal, saveOrder } = useCart()
+  const { isAuthenticated, token, user } = useAuth()
   const navigate = useNavigate()
-  const [customer, setCustomer] = useState({ name: '', email: '', phone: '', address: '', city: '', notes: '' })
+  const [customer, setCustomer] = useState(() => ({
+    name: [user?.first_name, user?.last_name].filter(Boolean).join(' '),
+    email: user?.email || '',
+    phone: '',
+    address: '',
+    city: '',
+    notes: '',
+  }))
+  const [submitError, setSubmitError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const cartCount = items.reduce((total, item) => total + item.quantity, 0)
 
   if (items.length === 0) {
@@ -19,10 +31,44 @@ export default function CheckoutPage() {
   }
 
   const handleChange = event => setCustomer(current => ({ ...current, [event.target.name]: event.target.value }))
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault()
-    const order = placeOrder(customer)
-    navigate('/confirm', { state: { order } })
+    setSubmitError('')
+    setIsSubmitting(true)
+
+    try {
+      const result = await apiRequest('/orders/', {
+        method: 'POST',
+        token,
+        body: {
+          customer_name: customer.name,
+          customer_email: customer.email,
+          customer_phone: customer.phone,
+          delivery_address: customer.address,
+          delivery_city: customer.city,
+          delivery_notes: customer.notes,
+          items: items.map(item => ({ product_id: item.id, quantity: item.quantity })),
+        },
+      })
+
+      const order = {
+        id: result.reference,
+        customer: { name: result.customer_name, email: result.customer_email },
+        items: result.order_items.map((orderItem, index) => ({
+          ...items[index],
+          price: Number(orderItem.unit_price),
+          quantity: orderItem.quantity,
+        })),
+        total: Number(result.total),
+        createdAt: result.created_at,
+      }
+      saveOrder(order)
+      navigate('/confirm', { state: { order } })
+    } catch (error) {
+      setSubmitError(error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -43,6 +89,27 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {!isAuthenticated ? (
+          <div className="mx-auto max-w-xl border border-peach-mid/50 bg-white p-6 text-center shadow-sm sm:p-8">
+            <LuShieldCheck aria-hidden="true" className="mx-auto h-9 w-9 text-primary" />
+            <h2 className="mt-3 text-xl font-bold text-black">Sign in to place your order</h2>
+            <p className="mt-2 text-sm leading-relaxed text-black/70">
+              Your cart is saved. Sign in or create an account to continue with delivery details and submit your order request.
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <Link to="/signin" state={{ from: '/checkout' }} className="bg-[#F58537] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#e8742b]">
+                Sign in
+              </Link>
+              <Link to="/signup" state={{ from: '/checkout' }} className="border border-black px-4 py-3 text-sm font-bold text-black transition-colors hover:bg-peach-light">
+                Sign up
+              </Link>
+            </div>
+            <Link to="/cart" className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-black/70 underline underline-offset-2 hover:text-primary">
+              <LuArrowLeft aria-hidden="true" className="h-4 w-4" />
+              Return to cart
+            </Link>
+          </div>
+        ) : (
         <div className="grid items-start gap-6 lg:grid-cols-[1fr_360px] lg:gap-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <section className="border border-peach-mid/50 bg-white p-4 shadow-sm sm:p-6">
@@ -85,8 +152,16 @@ export default function CheckoutPage() {
               <LuShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
               <p>This checkout places an order request only. Our team will contact you to confirm delivery and payment details. No payment is collected online.</p>
             </div>
-            <button type="submit" className="w-full bg-[#F58537] px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#e8742b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto">
-              Place order request
+            {submitError && (
+              <p role="alert" className="border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {submitError}{' '}
+                {submitError.toLowerCase().includes('credentials') || submitError.toLowerCase().includes('token')
+                  ? <Link to="/signin" state={{ from: '/checkout' }} className="font-semibold underline">Sign in again</Link>
+                  : null}
+              </p>
+            )}
+            <button type="submit" disabled={isSubmitting} className="w-full bg-[#F58537] px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#e8742b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-wait disabled:opacity-60 sm:w-auto">
+              {isSubmitting ? 'Sending order…' : 'Place order request'}
             </button>
           </form>
 
@@ -129,6 +204,7 @@ export default function CheckoutPage() {
             </Link>
           </aside>
         </div>
+        )}
       </div>
     </section>
   )

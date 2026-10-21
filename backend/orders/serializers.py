@@ -47,8 +47,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         order_items = validated_data.pop('items')
+        user = self.context['request'].user
+        validated_data['customer_email'] = user.email
         order = Order.objects.create(
-            user=self.context['request'].user if self.context['request'].user.is_authenticated else None,
+            user=user,
             **validated_data,
         )
         total = Decimal('0')

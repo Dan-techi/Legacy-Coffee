@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #F58537;
+  --color-primary-dark: #C0392B;
+  --color-peach-light: #FCEBD0;
+  --color-peach: #FDDBA0;
+  --color-peach-mid: #F5C08A;
+  --color-footer: #F0935A;
+  --color-brown: #5C3A1E;
+  --color-brown-light: #8B5E3C;
+  --color-slate: #4A5568;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #5C3A1E;
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-25%); }
+}
+
+@keyframes marquee-fast {
+  from { transform: translateX(0); }
+  to { transform: translateX(-25%); }
+}
+
+.marquee-strip {
+  animation: marquee 8s linear infinite;
+}
+
+@media (max-width: 768px) {
+  .marquee-strip {
+    animation: marquee 4s linear infinite;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

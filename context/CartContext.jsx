@@ -40,17 +40,9 @@ export function CartProvider({ children }) {
     localStorage.setItem(CART_STORAGE_KEY, '[]')
   }, [])
 
-  const placeOrder = customer => {
-    const order = {
-      id: `LC-${Date.now().toString(36).toUpperCase()}`,
-      customer,
-      items,
-      total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      createdAt: new Date().toISOString(),
-    }
+  const saveOrder = order => {
     setLatestOrder(order)
     localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(order))
-    return order
   }
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
@@ -64,7 +56,7 @@ export function CartProvider({ children }) {
     updateQuantity,
     removeFromCart,
     clearCart,
-    placeOrder,
+    saveOrder,
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { LuMenu, LuShoppingCart, LuX } from 'react-icons/lu'
 import { useCart } from '../context/useCart.js'
+import { useAuth } from '../context/useAuth.js'
 
 const links = [
   { to: '/', label: 'Home' },
@@ -14,7 +15,9 @@ const links = [
 
 export default function Navbar() {
   const { cartCount } = useCart()
+  const { isAuthenticated, user, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [authMessage, setAuthMessage] = useState('')
   const [showFloatingCart, setShowFloatingCart] = useState(false)
   const headerRef = useRef(null)
 
@@ -51,7 +54,23 @@ export default function Navbar() {
             </NavLink>
           ))}
         </div>
-        <div className="ml-auto flex items-center gap-4 md:ml-0">
+        <div className="ml-auto flex items-center gap-3 md:ml-0">
+          {isAuthenticated ? (
+            <>
+              <span className="hidden max-w-28 truncate text-xs font-medium text-black lg:block">{user?.first_name || user?.email}</span>
+              <button
+                type="button"
+                onClick={() => signOut().catch(() => setAuthMessage('Signed out locally; the server session could not be cleared.'))}
+                className="hidden text-xs font-semibold text-black underline underline-offset-2 hover:text-primary md:inline"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link to="/signin" className="hidden text-xs font-semibold text-black underline underline-offset-2 hover:text-primary md:inline">
+              Sign in
+            </Link>
+          )}
           <NavLink
             to="/cart"
             aria-label={`Shopping cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
@@ -103,10 +122,30 @@ export default function Navbar() {
                 {label}
               </NavLink>
             ))}
+            <div className="mt-3 border-t border-peach-mid/50 pt-3">
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false)
+                    signOut().catch(() => setAuthMessage('Signed out locally; the server session could not be cleared.'))
+                  }}
+                  className="py-3 text-sm font-semibold text-black hover:text-primary"
+                >
+                  Sign out
+                </button>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <NavLink to="/signin" onClick={() => setIsMenuOpen(false)} className="py-3 text-sm font-semibold text-black hover:text-primary">Sign in</NavLink>
+                  <NavLink to="/signup" onClick={() => setIsMenuOpen(false)} className="py-3 text-sm font-semibold text-black hover:text-primary">Create account</NavLink>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
     </header>
+    {authMessage && <p role="status" className="fixed bottom-4 left-4 z-[60] bg-black px-4 py-2 text-xs text-white">{authMessage}</p>}
     {showFloatingCart && (
       <NavLink
         to="/cart"

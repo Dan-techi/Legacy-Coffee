@@ -39,6 +39,6 @@ Set `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`, and `CORS_ALLOW
 - `POST /api/newsletter/subscribe/`, `POST /api/newsletter/unsubscribe/`
 - `GET /api/dashboard/` (staff only)
 
-Token-authenticated requests use `Authorization: Token <token>`. Product list responses use DRF page-number pagination and expose the storefront product identifier as `id`. Orders accept product IDs and quantities only; the server looks up current active-product prices and snapshots them on each order item.
+Token-authenticated requests use `Authorization: Token <token>`. Order submission requires a signed-in account; the API associates each order with that account and uses the account email. Product list responses use DRF page-number pagination and expose the storefront product identifier as `id`. Orders accept product IDs and quantities only; the server looks up current active-product prices and snapshots them on each order item.
 
-The React storefront still uses its local product data and localStorage cart; connecting its forms and catalog to this API is a separate integration step.
+The React storefront has sign-in and sign-up pages and submits authenticated order requests to this API. The cart and product catalog still use localStorage and local product data. Set `VITE_API_URL` in the frontend environment to override the default `http://127.0.0.1:8000/api` API URL.

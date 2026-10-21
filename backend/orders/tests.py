@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 
 from shop.models import Product
@@ -21,6 +22,11 @@ class OrderApiTests(APITestCase):
             image='https://example.com/coffee.jpg',
             image_alt='Coffee',
         )
+        self.user = get_user_model().objects.create_user(
+            username='customer',
+            email='account@example.com',
+            password='StrongPassword!2026',
+        )
         self.payload = {
             'customer_name': 'Coffee Customer',
             'customer_email': 'customer@example.com',
@@ -31,14 +37,18 @@ class OrderApiTests(APITestCase):
         }
 
     def test_order_uses_catalog_price_and_creates_reference(self):
+        self.client.force_authenticate(self.user)
         response = self.client.post('/api/orders/', self.payload, format='json')
         self.assertEqual(response.status_code, 201)
         order = Order.objects.get()
         self.assertTrue(order.reference.startswith('LC-'))
         self.assertEqual(order.total, Decimal('36000'))
+        self.assertEqual(order.user, self.user)
+        self.assertEqual(order.customer_email, self.user.email)
         self.assertEqual(response.data['order_items'][0]['unit_price'], '18000')
 
     def test_order_rejects_invalid_quantity_and_duplicate_products(self):
+        self.client.force_authenticate(self.user)
         invalid_quantity = {**self.payload, 'items': [{'product_id': self.product.slug, 'quantity': 100}]}
         duplicate_products = {
             **self.payload,
@@ -49,4 +59,9 @@ class OrderApiTests(APITestCase):
         }
         self.assertEqual(self.client.post('/api/orders/', invalid_quantity, format='json').status_code, 400)
         self.assertEqual(self.client.post('/api/orders/', duplicate_products, format='json').status_code, 400)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_order_requires_authenticated_user(self):
+        response = self.client.post('/api/orders/', self.payload, format='json')
+        self.assertEqual(response.status_code, 401)
         self.assertEqual(Order.objects.count(), 0)
