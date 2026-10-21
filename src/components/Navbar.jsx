@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { FiChevronDown, FiX } from 'react-icons/fi'
 import { LuShoppingCart } from 'react-icons/lu'
 import { useCart } from '../context/useCart.js'
+import { useAuth } from '../context/useAuth.js'
 
 const navLinks = [
   { label: 'Home', to: '/' },
@@ -27,10 +28,12 @@ const navLinks = [
 
 export default function Navbar() {
   const { cartCount } = useCart()
+  const { isAuthenticated, user, signOut } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdown, setDropdown] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [openMobileDropdown, setOpenMobileDropdown] = useState(null)
+  const [authMessage, setAuthMessage] = useState('')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -86,6 +89,24 @@ export default function Navbar() {
           </ul>
 
           <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <>
+                <span className="hidden max-w-28 truncate text-xs font-medium text-brown lg:block">
+                  {user?.first_name || user?.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => signOut().catch(() => setAuthMessage('Signed out locally; the server session could not be cleared.'))}
+                  className="hidden text-xs font-semibold text-brown underline underline-offset-2 hover:text-primary md:inline"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <Link to="/signin" className="hidden text-xs font-semibold text-brown underline underline-offset-2 hover:text-primary md:inline">
+                Sign in
+              </Link>
+            )}
             <Link
               to="/cart"
               aria-label={`Shopping cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
@@ -169,6 +190,29 @@ export default function Navbar() {
 
           {/* CTA */}
           <div className="px-6 py-5 border-t border-peach-light">
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  signOut().catch(() => setAuthMessage('Signed out locally; the server session could not be cleared.'))
+                }}
+                className="mb-3 block w-full text-center text-sm font-semibold text-brown hover:text-primary"
+              >
+                Sign out
+              </button>
+            ) : (
+              <div className="mb-3 grid grid-cols-2 gap-2">
+                <Link to="/signin" onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-brown/30 px-3 py-2 text-center text-xs font-semibold text-brown hover:border-primary hover:text-primary">
+                  Sign in
+                </Link>
+                <Link to="/signup" onClick={() => setMenuOpen(false)}
+                  className="rounded-full border border-brown/30 px-3 py-2 text-center text-xs font-semibold text-brown hover:border-primary hover:text-primary">
+                  Create account
+                </Link>
+              </div>
+            )}
             <Link to="/shop#quote"
               className="block text-center bg-primary text-white px-6 py-3.5 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-brown transition-colors"
               onClick={() => setMenuOpen(false)}>
@@ -177,6 +221,11 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+      {authMessage && (
+        <p role="status" className="fixed bottom-4 left-4 z-[60] bg-black px-4 py-2 text-xs text-white">
+          {authMessage}
+        </p>
+      )}
     </>
   )
 }

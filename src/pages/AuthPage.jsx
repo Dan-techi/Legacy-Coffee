@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { LuCoffee, LuLockKeyhole } from 'react-icons/lu'
-import { useAuth } from './context/useAuth.js'
+import { useAuth } from '../context/useAuth.js'
 
 const inputClass = 'mt-1.5 w-full border border-peach-mid px-3.5 py-3 text-sm text-black outline-none placeholder:text-black/40 focus:border-primary focus:ring-2 focus:ring-primary/20'
 

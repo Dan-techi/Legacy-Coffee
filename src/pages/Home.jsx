@@ -115,6 +115,24 @@ export default function Home() {
       {/* ── HERO ─────────────────────────────────────────────── */}
       <HeroSlider />
 
+      {/* ── LEGACY COFFEE INTRO ─────────────────────────────── */}
+      <section className="bg-white px-6 py-14 md:py-16">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="mb-5 text-3xl font-black leading-tight text-brown md:text-4xl">
+            Legacy Coffee
+          </h2>
+          <p className="mx-auto max-w-3xl text-base leading-relaxed text-brown/75 md:text-lg">
+            Legacy Coffee was founded out of a passion for both great coffee and community transformation. Rooted in the fertile soils of Western Uganda, our journey began as a family effort to uplift farmers who struggled to earn fair returns from their harvests. Today, we combine tradition, innovation, and social impact to create coffee that not only delights but also empowers.
+          </p>
+          <Link
+            to="/about"
+            className="mt-7 inline-flex items-center rounded-full bg-primary px-7 py-3 font-semibold text-white transition-colors hover:bg-brown focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            Read More
+          </Link>
+        </div>
+      </section>
+
       {/* ── MARQUEE STRIP ────────────────────────────────────── */}
       <div className="bg-brown py-4 overflow-hidden">
         <div className="marquee-strip flex whitespace-nowrap">

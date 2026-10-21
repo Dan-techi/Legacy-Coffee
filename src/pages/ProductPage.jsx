@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { LuChevronRight, LuHeart, LuShare2, LuStar } from 'react-icons/lu'
-import { products, formatPrice } from './data/products.js'
-import { useCart } from './context/useCart.js'
-import ProductImage from './components/ProductImage.jsx'
+import { products, formatPrice } from '../data/products.js'
+import { useCart } from '../context/useCart.js'
+import ProductImage from '../components/ProductImage.jsx'
 
 export default function ProductPage() {
   const { productId } = useParams()

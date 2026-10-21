@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { LuArrowLeft, LuMinus, LuPlus, LuShoppingBag, LuTrash2 } from 'react-icons/lu'
-import { formatPrice } from './data/products.js'
-import { useCart } from './context/useCart.js'
-import ProductImage from './components/ProductImage.jsx'
+import { formatPrice } from '../data/products.js'
+import { useCart } from '../context/useCart.js'
+import ProductImage from '../components/ProductImage.jsx'
 
 export default function CartPage() {
   const { items, cartTotal, updateQuantity, removeFromCart } = useCart()
